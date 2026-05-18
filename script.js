@@ -19,18 +19,15 @@ const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const NUMBERS = "0123456789".split("");
 const PUNCT   = [".",",","?","!","/"];
 
-/* ---------- tree layout ---------- */
-/* Four models the user can choose between.
- *  1 — standard binary tree (letters) + chip rows for numbers + punctuation (default)
- *  2 — standard binary tree extended: numbers + punctuation also as LEDs at level 5/6
- *  3 — standard binary tree, letters only (no numbers/punctuation)
- *  4 — compact "horizontal-spine" layout (pure-dot/dash chains lay along top row,
- *      mixed-character letters branch downward) — letters only
+/* ---------- tree layout ----------
+ *  1 — standard binary tree (letters) + chip rows for numbers/punct (default)
+ *  2 — extended binary tree: numbers + punctuation also as LEDs (level 5/6)
+ *  3 — letters only
+ *  4 — compact "horizontal-spine" layout, letters only
  */
 
-// Hardcoded positions for Model 4. ViewBox 1000 wide, antenna centered at x=500.
-// Top spine: H S I E [antenna] T M O (dot chain extends LEFT, dash chain extends RIGHT
-// — opposite of the source screenshot, mirrored to keep dot=left / dash=right convention)
+// Model 4 hardcoded positions. ViewBox 1000 wide, antenna at x=500.
+// dot chain extends LEFT, dash chain extends RIGHT (dot=left convention).
 const MODEL4_POSITIONS = {
   "":     { x: 500, y: 80 },  // antenna / root
 
@@ -44,24 +41,22 @@ const MODEL4_POSITIONS = {
   "--":   { x: 680, y: 80 },  // M
   "---":  { x: 770, y: 80 },  // O
 
-  // E sub-tree (.- ...). Centered under E (x=410), grows down.
+  // E sub-tree
   ".-":     { x: 410, y: 200 },          // A
-  ".-.":    { x: 365, y: 300 },          // R  (A + .)
-  ".--":    { x: 455, y: 300 },          // W  (A + -)
-  ".-..":   { x: 340, y: 400 },          // L  (R + .)
-  ".-.-":   { x: 390, y: 400 },          // — non-letter (skip render)
-  ".--.":   { x: 432, y: 400 },          // P  (W + .)
-  ".---":   { x: 478, y: 400 },          // J  (W + -)
+  ".-.":    { x: 365, y: 300 },          // R
+  ".--":    { x: 455, y: 300 },          // W
+  ".-..":   { x: 340, y: 400 },          // L
+  ".--.":   { x: 432, y: 400 },          // P
+  ".---":   { x: 478, y: 400 },          // J
 
-  // I sub-tree (..-). Centered under I (x=320).
+  // I sub-tree
   "..-":    { x: 320, y: 200 },          // U
   "..-.":   { x: 295, y: 300 },          // F
-  "..--":   { x: 345, y: 300 },          // — non-letter (skip render)
 
-  // S sub-tree (...-). Single child under S.
+  // S sub-tree
   "...-":   { x: 230, y: 200 },          // V
 
-  // T sub-tree (-.). Centered under T (x=590), grows down.
+  // T sub-tree
   "-.":     { x: 590, y: 200 },          // N
   "-..":    { x: 545, y: 300 },          // D
   "-.-":    { x: 635, y: 300 },          // K
@@ -70,12 +65,10 @@ const MODEL4_POSITIONS = {
   "-.-.":   { x: 612, y: 400 },          // C
   "-.--":   { x: 658, y: 400 },          // Y
 
-  // M sub-tree (--.). Centered under M (x=680).
+  // M sub-tree
   "--.":    { x: 680, y: 200 },          // G
   "--..":   { x: 655, y: 300 },          // Z
   "--.-":   { x: 705, y: 300 },          // Q
-
-  // O sub-tree: no standard letters past O (---) without numbers
 };
 
 const MODELS = {
@@ -89,7 +82,7 @@ const MODELS = {
   "2": {
     label: "Extended",
     showLetterLEDs: true,
-    showNumPunctAsLEDs: true,   // integrate numbers + punct into the tree as deeper LEDs
+    showNumPunctAsLEDs: true,
     showNumPunctAsChips: false,
     pos: defaultBinaryTreePos,
   },
@@ -110,7 +103,6 @@ const MODELS = {
 };
 
 function defaultBinaryTreePos(morse, { extended } = {}) {
-  // Width gets wider for "extended" so deeper levels don't crash into each other.
   const W = extended ? 960 : 880;
   const CX = 500;
   const TOP_Y = 70;
@@ -123,11 +115,11 @@ function defaultBinaryTreePos(morse, { extended } = {}) {
   return { x, y: TOP_Y + morse.length * LEVEL_DY };
 }
 
-// Build the working tree (nodes + branches) for a given model.
+// Build the nodes + branches for a given tree model.
 function buildTree(modelId) {
   const model = MODELS[modelId] || MODELS["1"];
 
-  // 1. Collect every code we need to render.
+  // Collect every code path we need to render (all prefixes of every letter).
   const codes = new Set([""]);
   if (model.showLetterLEDs) {
     LETTERS.forEach(L => {
@@ -142,8 +134,7 @@ function buildTree(modelId) {
     });
   }
 
-  // 2. Compute positions. For Model 4, only the hardcoded codes have positions —
-  //    we keep only nodes that have a position.
+  // Compute positions; skip codes the model has no position for (Model 4).
   const positionOpts = { extended: modelId === "2" };
   const nodes = {};
   codes.forEach(c => {
@@ -152,7 +143,7 @@ function buildTree(modelId) {
     nodes[c] = { x: p.x, y: p.y, code: c, label: FROM_MORSE[c] || null };
   });
 
-  // 3. Branches: each non-root code has its parent (one char shorter).
+  // Each non-root node has a parent one char shorter; that's the branch.
   const branches = [];
   Object.keys(nodes).forEach(c => {
     if (c === "") return;
@@ -163,11 +154,10 @@ function buildTree(modelId) {
   return { nodes, branches, model, modelId };
 }
 
-// Active tree (re-built each render). Default model = "1".
 let TREE = buildTree("1");
 
 /* ---------- AUDIO ---------- */
-const Audio = (() => {
+const Beeper = (() => {
   let ctx, masterGain;
   let muted = false;
   let scheduledNodes = [];
@@ -180,6 +170,13 @@ const Audio = (() => {
     }
     if (ctx.state === "suspended") ctx.resume();
     return ctx;
+  }
+  function trackNode(n) {
+    scheduledNodes.push(n);
+    n.onended = () => {
+      const i = scheduledNodes.indexOf(n);
+      if (i !== -1) scheduledNodes.splice(i, 1);
+    };
   }
   function beep(durMs, tone = "sine") {
     if (muted) return;
@@ -198,7 +195,7 @@ const Audio = (() => {
       o.type = "sine"; o.frequency.value = 700;
       o.connect(env);
       o.start(t0); o.stop(t0 + dur + 0.02);
-      scheduledNodes.push(o);
+      trackNode(o);
     } else if (tone === "telegraph") {
       // Tight square-ish click + tone
       const o1 = ctx.createOscillator(); o1.type = "square"; o1.frequency.value = 620;
@@ -206,7 +203,7 @@ const Audio = (() => {
       const mix = ctx.createGain(); mix.gain.value = 0.5;
       o1.connect(mix); o2.connect(mix); mix.connect(env);
       o1.start(t0); o2.start(t0); o1.stop(t0 + dur + 0.02); o2.stop(t0 + dur + 0.02);
-      scheduledNodes.push(o1, o2);
+      trackNode(o1); trackNode(o2);
     } else if (tone === "buzzer") {
       // Sawtooth with slight detune for rasp
       const o1 = ctx.createOscillator(); o1.type = "sawtooth"; o1.frequency.value = 480;
@@ -214,7 +211,7 @@ const Audio = (() => {
       const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1600;
       o1.connect(lp); o2.connect(lp); lp.connect(env);
       o1.start(t0); o2.start(t0); o1.stop(t0 + dur + 0.02); o2.stop(t0 + dur + 0.02);
-      scheduledNodes.push(o1, o2);
+      trackNode(o1); trackNode(o2);
     }
   }
   function killAll() {
@@ -222,14 +219,13 @@ const Audio = (() => {
     scheduledNodes = [];
   }
   function setMuted(v) { muted = !!v; if (muted) killAll(); }
-  return { beep, ensure, setMuted, get muted(){return muted;} };
+  return { beep, ensure, setMuted, killAll, get muted(){return muted;} };
 })();
 
 /* ---------- STATE ---------- */
 const State = {
   wpm: 15,
   tone: "sine",
-  pauseMs: 650,
   buffer: "",       // current dot/dash buffer being typed
   decoded: "",      // accumulated decoded text
   morseOut: "",     // accumulated raw morse (with " " and "/" separators)
@@ -237,6 +233,8 @@ const State = {
   abortPlay: false,
 };
 const unit = () => 1200 / State.wpm;
+// Decoder commit-pause: must exceed one dash plus a human inter-symbol gap.
+const pauseMs = () => Math.max(700, unit() * 5);
 
 /* ---------- TREE RENDERING ---------- */
 const svg = document.getElementById("tree-svg");
@@ -282,14 +280,19 @@ function renderTree() {
 
   // LED size per level — shrink for deep levels (used by Model 2)
   function ledSizeFor(code) {
+    const scale = +getComputedStyle(document.documentElement)
+      .getPropertyValue("--led-scale") || 1;
+    const apply = (sz) => ({
+      r: sz.r * scale, s: sz.s * scale, rx: sz.rx
+    });
     const len = code.length;
     if (modelId === "2") {
-      if (len <= 4) return { r: 21, s: 38, rx: 5 };
-      if (len === 5) return { r: 15, s: 28, rx: 4 };     // numbers
-      return        { r: 11, s: 22, rx: 3 };             // punctuation
+      if (len <= 4) return apply({ r: 21, s: 38, rx: 5 });
+      if (len === 5) return apply({ r: 15, s: 28, rx: 4 });     // numbers
+      return        apply({ r: 11, s: 22, rx: 3 });             // punctuation
     }
-    if (modelId === "4") return { r: 26, s: 46, rx: 4 };
-    return { r: 21, s: 38, rx: 5 };
+    if (modelId === "4") return apply({ r: 26, s: 46, rx: 4 });
+    return apply({ r: 21, s: 38, rx: 5 });
   }
 
   // all nodes (letters and, for Model 2, numbers + punctuation)
@@ -320,13 +323,15 @@ function renderTree() {
   Object.values(TREE.nodes).forEach(n => { if (n.y > bottomY) bottomY = n.y; });
 
   if (model.showNumPunctAsChips) {
+    const scale = +getComputedStyle(document.documentElement)
+      .getPropertyValue("--led-scale") || 1;
     const numY = bottomY + 80;
     const numSpan = 880;
     NUMBERS.forEach((d, i) => {
       const m = MORSE[d];
       const x = 500 + ((i - (NUMBERS.length-1)/2) / (NUMBERS.length-1)) * numSpan;
       const g = svgEl("g", { class: "chip-g", "data-chip": d, transform: `translate(${x},${numY})` });
-      const w = 64, h = 50;
+      const w = 64 * scale, h = 50 * scale;
       g.appendChild(svgEl("rect", { class: "chip-box", x: -w/2, y: -h/2, width: w, height: h, rx: 9 }));
       const t = svgEl("text", { class: "chip-letter", x: 0, y: -7, "text-anchor": "middle" });
       t.textContent = d;
@@ -343,7 +348,7 @@ function renderTree() {
       const m = MORSE[sym];
       const x = 500 + ((i - (PUNCT.length-1)/2) / (PUNCT.length-1)) * punSpan;
       const g = svgEl("g", { class: "chip-g", "data-chip": sym, transform: `translate(${x},${punY})` });
-      const w = 124, h = 48;
+      const w = 124 * scale, h = 48 * scale;
       g.appendChild(svgEl("rect", { class: "chip-box", x: -w/2, y: -h/2, width: w, height: h, rx: 9 }));
       const t = svgEl("text", { class: "chip-letter", x: -34, y: 0, "text-anchor": "middle" });
       t.textContent = sym;
@@ -432,20 +437,17 @@ async function transmitLetter(letter) {
     const isNumOrPunct = NUMBERS.includes(letter) || PUNCT.includes(letter);
 
     if (isInTree) {
-      // Lit as LED. For Model 2, the final glow on a number/punct is the LED itself.
       litLED(prefix, { final: isFinal, stepPos });
     } else if (isFinal && isNumOrPunct) {
-      // Final letter is a chip (Model 1) — handled below after the loop.
+      // final chip lit after the loop
     } else if (i < code.length) {
-      // Intermediate node not in our tree (Model 3/4 skipping numbers, or non-letter prefix).
       const br = svg.querySelector(`.branch[data-to="${cssEsc(prefix)}"]`);
       if (br) { br.classList.add("lit"); br.style.setProperty("--step-pos", stepPos); }
     }
-    Audio.beep(dur, State.tone);
+    Beeper.beep(dur, State.tone);
     await sleep(dur);
     if (i < code.length) await sleep(unit());
   }
-  // chip light for numbers/punct in models that have chip rows
   if ((NUMBERS.includes(letter) || PUNCT.includes(letter)) && !(TREE.nodes[code] && TREE.nodes[code].label)) {
     litChip(letter, { final: true });
   }
@@ -456,7 +458,8 @@ async function transmitLetter(letter) {
     updateReadout();
   }
   await sleep(unit() * 1.5);
-  setTransmitting(false);
+  // avoid READY→TX flicker if more letters are queued behind this one
+  if (txPending <= 1 && !State.playing) setTransmitting(false);
 }
 async function transmitText(text) {
   State.playing = true;
@@ -481,7 +484,7 @@ async function transmitText(text) {
 }
 function stopTransmit() {
   State.abortPlay = true;
-  Audio.ensure();
+  Beeper.killAll();
   setTransmitting(false);
 }
 function setTransmitting(on) {
@@ -492,8 +495,18 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* serialize standalone letter transmissions (live-type, ref clicks) */
 let txQueue = Promise.resolve();
+let txPending = 0;
 function enqueueLetter(ch) {
-  txQueue = txQueue.then(() => transmitLetter(ch).then(() => sleep(unit() * 2)));
+  // Don't interleave live-typed letters with a Text→Morse playback in progress
+  if (State.playing) return txQueue;
+  txPending += 1;
+  txQueue = txQueue
+    .then(() => transmitLetter(ch))
+    .then(() => sleep(unit() * 2))
+    .finally(() => {
+      txPending -= 1;
+      if (txPending === 0 && !State.playing) setTransmitting(false);
+    });
   return txQueue;
 }
 
@@ -515,10 +528,10 @@ function setBufferDisplay() {
     readoutMarks.innerHTML = '<span class="rm-placeholder">— tap to send —</span>';
     return;
   }
-  const html = State.buffer.split("").map(s =>
+  const display = State.buffer.split("").map(s =>
     s === "." ? "·" : "—"
   ).join(" ");
-  readoutMarks.textContent = html;
+  readoutMarks.textContent = display;
 }
 
 /* ---------- HISTORY TAPE ---------- */
@@ -527,8 +540,9 @@ const HISTORY = []; // [{ ch, code }] — newest last
 const HISTORY_MAX = 60;
 function pushHistory(ch) {
   if (ch === " ") {
-    // collapse consecutive spaces
-    if (HISTORY.length && HISTORY[HISTORY.length-1].ch === " ") return;
+    // drop leading spaces; collapse consecutive ones
+    if (!HISTORY.length) return;
+    if (HISTORY[HISTORY.length-1].ch === " ") return;
     HISTORY.push({ ch: " ", code: "" });
   } else {
     HISTORY.push({ ch, code: MORSE[ch] || "?" });
@@ -578,19 +592,23 @@ function clearHistory() {
 let decodeTimer = null;
 let countdownRAF = null;
 function pushSymbol(sym) {
-  Audio.ensure();
+  Beeper.ensure();
   State.buffer += sym;
   setBufferDisplay();
   // animate tree path so user sees progress
   paintBufferOnTree();
   // play beep
   const dur = sym === "." ? unit() : unit() * 3;
-  Audio.beep(dur, State.tone);
+  Beeper.beep(dur, State.tone);
   scheduleDecode();
 }
 function paintBufferOnTree() {
   clearLights(); unlitChips();
-  if (!State.buffer) return;
+  if (!State.buffer) {
+    // buffer fully erased — clear TX state
+    if (!State.playing && txPending === 0) setTransmitting(false);
+    return;
+  }
   const L = State.buffer.length;
   for (let i = 1; i <= L; i++) {
     const p = State.buffer.slice(0, i);
@@ -607,7 +625,7 @@ function scheduleDecode() {
   if (decodeTimer) clearTimeout(decodeTimer);
   if (countdownRAF) cancelAnimationFrame(countdownRAF);
   const start = performance.now();
-  const dur = State.pauseMs;
+  const dur = pauseMs();
   const tick = () => {
     const t = performance.now() - start;
     const pct = Math.min(100, (t / dur) * 100);
@@ -648,19 +666,31 @@ function commitLetter() {
 /* ---------- INPUTS ---------- */
 
 /* Spacebar: tap=dot, hold=dash (threshold relative to WPM) */
-let spaceDownT = 0, spaceHeld = false;
+let spaceDownT = 0, spaceHeld = false, spaceTimer = null;
 window.addEventListener("keydown", e => {
   if (e.target.matches("textarea, input")) return;
   if (e.code === "Space") {
     e.preventDefault();
-    if (!spaceHeld) { spaceDownT = performance.now(); spaceHeld = true; keypadEl.classList.add("pressed"); keypadSymbol.textContent = "·"; }
+    Beeper.ensure();
+    if (!spaceHeld) {
+      spaceDownT = performance.now();
+      spaceHeld = true;
+      keypadEl.classList.add("pressed");
+      keypadSymbol.textContent = "·";
+      const threshold = Math.max(180, unit() * 1.6);
+      spaceTimer = setTimeout(() => { keypadSymbol.textContent = "—"; }, threshold);
+    }
   } else if (/^Key[A-Z]$|^Digit[0-9]$/.test(e.code) && !e.metaKey && !e.ctrlKey && !e.altKey && !e.repeat) {
     const ch = e.key.toUpperCase();
-    if (MORSE[ch] && !State.playing) enqueueLetter(ch);
+    if (MORSE[ch] && !State.playing) {
+      // resume AudioContext inside the gesture so the first key plays sound
+      Beeper.ensure();
+      enqueueLetter(ch);
+    }
   } else if (e.key === "Backspace" && !e.target.matches("textarea, input")) {
     e.preventDefault();
     State.decoded = State.decoded.slice(0, -1);
-    State.morseOut = State.morseOut.replace(/\S+\s$/, "");
+    State.morseOut = State.morseOut.replace(/[^\s/]+\s$/, "");
     updateReadout();
   }
 });
@@ -673,6 +703,7 @@ window.addEventListener("keyup", e => {
     spaceHeld = false;
     keypadEl.classList.remove("pressed");
     keypadSymbol.textContent = "·";
+    clearTimeout(spaceTimer);
   }
 });
 
@@ -707,6 +738,7 @@ function kpCancel() {
 keypadEl.addEventListener("pointerdown", e => {
   e.preventDefault();
   keypadEl.setPointerCapture(e.pointerId);
+  Beeper.ensure();
   // right-click = dash directly on pointerup (no hold needed)
   if (e.button === 2) {
     pushSymbol("-"); return;
@@ -739,7 +771,7 @@ document.querySelector('[data-action="backspace"]').addEventListener("click", ()
     scheduleDecode();
   } else {
     State.decoded = State.decoded.slice(0, -1);
-    State.morseOut = State.morseOut.replace(/\S+\s$/, "");
+    State.morseOut = State.morseOut.replace(/[^\s/]+\s$/, "");
     updateReadout();
   }
 });
@@ -757,6 +789,7 @@ function refreshT2M() {
 t2mInput.addEventListener("input", refreshT2M);
 document.querySelector('[data-action="play-t2m"]').addEventListener("click", () => {
   if (State.playing) return;
+  Beeper.ensure();
   State.decoded = "";
   State.morseOut = "";
   updateReadout();
@@ -794,8 +827,8 @@ document.querySelector('[data-action="m2t-slash"]').addEventListener("click", ()
 document.querySelector('[data-action="m2t-clear"]').addEventListener("click", () => { m2tInput.value = ""; refreshM2T(); });
 document.querySelector('[data-action="play-m2t"]').addEventListener("click", () => {
   if (State.playing) return;
-  // Decode the morse into plain text, then play it through the normal pipeline
-  // so user sees the tree animate + hears the audio.
+  Beeper.ensure();
+  // decode the morse to plain text, then route through the same playback pipeline
   const raw = m2tInput.value.replace(/[·•]/g, ".").replace(/[—–]/g, "-");
   const words = raw.split(/\s*\/\s*|\s{3,}/);
   const text = words.map(w =>
@@ -831,6 +864,7 @@ document.querySelector('[data-action="clear-history"]').addEventListener("click"
 /* ---------- SOS ---------- */
 document.querySelector('[data-action="sos"]').addEventListener("click", () => {
   if (State.playing) return;
+  Beeper.ensure();
   State.decoded = ""; State.morseOut = "";
   updateReadout();
   transmitText("SOS");
@@ -839,7 +873,11 @@ document.querySelector('[data-action="sos"]').addEventListener("click", () => {
 /* ---------- TABS ---------- */
 document.querySelectorAll(".tab").forEach(t => {
   t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x => x.classList.toggle("active", x === t));
+    document.querySelectorAll(".tab").forEach(x => {
+      const isActive = x === t;
+      x.classList.toggle("active", isActive);
+      x.setAttribute("aria-selected", isActive ? "true" : "false");
+    });
     document.querySelectorAll(".tabpanel").forEach(p => p.hidden = p.dataset.panel !== t.dataset.tab);
     if (t.dataset.tab === "drill") Drill.start();
   });
@@ -852,7 +890,8 @@ const Drill = (() => {
     alnum:   LETTERS.concat(NUMBERS),
     all:     LETTERS.concat(NUMBERS).concat(PUNCT),
   };
-  const state = { pool: "letters", current: null, correct: 0, total: 0, streak: 0, locked: false };
+  const state = { pool: "letters", current: null, correct: 0, total: 0, streak: 0, locked: false, mode: "blind" };
+  let advanceTimer = null;
   const morseEl = document.getElementById("drill-morse");
   const choicesEl = document.getElementById("drill-choices");
   const feedbackEl = document.getElementById("drill-feedback");
@@ -905,12 +944,19 @@ const Drill = (() => {
       choicesEl.appendChild(b);
     });
     morseEl.textContent = MORSE[state.current].replace(/\./g, "·").replace(/-/g, "—");
+    if (state.mode === "visible") {
+      morseEl.classList.remove("hidden");
+    } else {
+      // blind mode: show placeholder until answered
+      morseEl.textContent = "— — —";
+      morseEl.classList.add("hidden");
+    }
     if (!silent) await playCurrent();
   }
   async function playCurrent() {
     if (!state.current) return;
-    // Only play through the tree + audio; do NOT mutate decoded text / history.
-    Audio.ensure();
+    // play through tree + audio; don't touch decoded text or history
+    Beeper.ensure();
     const code = MORSE[state.current];
     clearLights(); unlitChips();
     setTransmitting(true);
@@ -925,7 +971,7 @@ const Drill = (() => {
         const br = svg.querySelector(`.branch[data-to="${cssEsc(prefix)}"]`);
         if (br) br.classList.add("lit");
       }
-      Audio.beep(dur, State.tone);
+      Beeper.beep(dur, State.tone);
       await sleep(dur);
       if (i < code.length) await sleep(unit());
     }
@@ -933,19 +979,14 @@ const Drill = (() => {
       litChip(state.current);
     }
     await sleep(unit() * 1.5);
-    setTimeout(() => {
-      if (!state.locked || feedbackEl.dataset.result === "wrong") {
-        // keep tree visible until answered or after wrong reveal
-      } else {
-        clearLights(); unlitChips();
-      }
-      setTransmitting(false);
-    }, 400);
+    setTransmitting(false);
   }
   function answer(choice, btnEl) {
     if (state.locked) return;
     state.locked = true;
     state.total += 1;
+    morseEl.textContent = MORSE[state.current].replace(/\./g, "·").replace(/-/g, "—");
+    morseEl.classList.remove("hidden");
     const right = choice === state.current;
     if (right) {
       state.correct += 1;
@@ -960,7 +1001,8 @@ const Drill = (() => {
         litLED(MORSE[state.current], { final: true });
       }
       showSpotlight(state.current, MORSE[state.current]);
-      setTimeout(() => newRound(), 900);
+      clearTimeout(advanceTimer);
+      advanceTimer = setTimeout(() => newRound(), 900);
     } else {
       state.streak = 0;
       btnEl.classList.add("wrong");
@@ -972,18 +1014,42 @@ const Drill = (() => {
     }
     renderScore();
   }
-  function next() { newRound(); }
+  function next() {
+    clearTimeout(advanceTimer);
+    // skipping unanswered counts as a miss
+    if (state.current && !state.locked) {
+      state.total += 1;
+      state.streak = 0;
+      renderScore();
+    }
+    newRound();
+  }
   function reset() {
+    clearTimeout(advanceTimer);
     state.correct = 0; state.total = 0; state.streak = 0;
     renderScore();
     newRound();
   }
   function setPool(p) { state.pool = p; newRound(); }
+  function applyMode(mode) {
+    if (mode !== "blind" && mode !== "visible") return;
+    state.mode = mode;
+    // sync visibility for any unanswered round already on screen
+    if (state.current && !state.locked) {
+      if (mode === "visible") {
+        morseEl.textContent = MORSE[state.current].replace(/\./g, "·").replace(/-/g, "—");
+        morseEl.classList.remove("hidden");
+      } else {
+        morseEl.textContent = "— — —";
+        morseEl.classList.add("hidden");
+      }
+    }
+  }
   function start() {
     renderScore();
     if (!state.current) newRound({ silent: true });
   }
-  return { start, next, reset, setPool, playCurrent, get state(){ return state; } };
+  return { start, next, reset, setPool, applyMode, playCurrent, get state(){ return state; } };
 })();
 
 document.querySelector('[data-action="drill-next"]').addEventListener("click", () => Drill.next());
@@ -1043,6 +1109,7 @@ function toast(msg) {
 /* ---------- REFERENCE PANEL ---------- */
 function buildRef() {
   const make = (chars, host) => {
+    if (!host) return;
     chars.forEach(c => {
       const code = MORSE[c];
       const b = document.createElement("button");
@@ -1063,7 +1130,11 @@ function buildRef() {
 /* ---------- THEME / TWEAKS ---------- */
 const Prefs = (() => {
   const KEY = "morse.prefs.v1";
-  const defaults = { theme: "dark", finish: "matte", font: "mono", glow: "amber", ledScale: 1, tone: "sine", wpm: 15, treeModel: "1" };
+  const defaults = {
+    theme: "dark", finish: "matte", font: "mono", glow: "amber",
+    ledScale: 1, tone: "sine", wpm: 15, treeModel: "1",
+    drillMode: "blind",
+  };
   let p = { ...defaults };
   try { p = { ...defaults, ...(JSON.parse(localStorage.getItem(KEY) || "{}")) }; } catch(_) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch(_){} }
@@ -1072,6 +1143,7 @@ const Prefs = (() => {
     document.body.dataset.finish = p.finish;
     document.body.dataset.font = p.font;
     document.body.dataset.glow = p.glow;
+    const prevScale = document.documentElement.style.getPropertyValue("--led-scale");
     document.documentElement.style.setProperty("--led-scale", p.ledScale);
     document.getElementById("led-scale").value = p.ledScale;
     document.getElementById("led-scale-val").textContent = (+p.ledScale).toFixed(2).replace(/0$/,"") + "×";
@@ -1080,24 +1152,20 @@ const Prefs = (() => {
     document.getElementById("wpm").value = p.wpm;
     document.getElementById("wpm-val").textContent = p.wpm;
 
-    // Tree model: re-build TREE struct and re-render if it changed
-    if (!TREE || TREE.modelId !== p.treeModel) {
-      TREE = buildTree(p.treeModel);
-      if (svg.firstChild) renderTree();
-    }
+    // rebuild + re-render the tree when model or LED scale changes
+    const modelChanged = !TREE || TREE.modelId !== p.treeModel;
+    const scaleChanged = prevScale && parseFloat(prevScale) !== +p.ledScale;
+    if (modelChanged) TREE = buildTree(p.treeModel);
+    if ((modelChanged || scaleChanged) && svg.firstChild) renderTree();
 
-    // segs
-    document.querySelectorAll('.seg[data-tweak], [data-tweak]').forEach(seg => {
+    if (typeof Drill !== "undefined" && Drill.applyMode) Drill.applyMode(p.drillMode);
+
+    document.querySelectorAll('[data-tweak]').forEach(seg => {
       const key = seg.dataset.tweak;
       if (!key) return;
-      const val =
-        key === "default-tone"   ? p.tone :
-        key === "theme"          ? p.theme :
-        key === "tree-model"     ? p.treeModel :
-        p[key];
+      const val = key === "tree-model" ? p.treeModel : p[key];
       seg.querySelectorAll("[data-val]").forEach(btn => btn.classList.toggle("active", btn.dataset.val === val));
     });
-    document.querySelectorAll('.seg[data-tone] .seg-btn').forEach(b => b.classList.toggle("active", b.dataset.tone === p.tone));
     document.querySelectorAll('.swatches[data-tweak="glow"] .sw').forEach(b => b.classList.toggle("active", b.dataset.val === p.glow));
   }
   function set(k, v) { p[k] = v; save(); apply(); }
@@ -1110,9 +1178,7 @@ document.querySelectorAll('[data-tweak]').forEach(group => {
     if (!btn) return;
     const key = group.dataset.tweak;
     const v = btn.dataset.val;
-    if (key === "default-tone") Prefs.set("tone", v);
-    else if (key === "theme") Prefs.set("theme", v);
-    else if (key === "tree-model") Prefs.set("treeModel", v);
+    if (key === "tree-model") Prefs.set("treeModel", v);
     else Prefs.set(key, v);
   });
 });
@@ -1122,21 +1188,14 @@ document.getElementById("led-scale").addEventListener("input", e => {
 document.getElementById("wpm").addEventListener("input", e => {
   Prefs.set("wpm", +e.target.value);
 });
-document.querySelectorAll('.seg[role="tablist"] .seg-btn[data-tone]').forEach(b => {
-  b.addEventListener("click", () => {
-    document.querySelectorAll('.seg-btn[data-tone]').forEach(x => x.classList.toggle("active", x === b));
-    State.tone = b.dataset.tone;
-    Prefs.set("tone", b.dataset.tone);
-  });
-});
 document.querySelector('[data-action="toggle-theme"]').addEventListener("click", () => {
   Prefs.set("theme", Prefs.get().theme === "dark" ? "light" : "dark");
 });
 document.getElementById("audiotoggle").addEventListener("click", e => {
   const btn = e.currentTarget;
   const next = btn.getAttribute("aria-pressed") !== "true";
-  btn.setAttribute("aria-pressed", next);
-  Audio.setMuted(!next);
+  btn.setAttribute("aria-pressed", next ? "true" : "false");
+  Beeper.setMuted(!next);
 });
 
 /* ---------- SHARE LINK ---------- */
@@ -1152,7 +1211,6 @@ function handleShared() {
   ).join(" ");
   document.getElementById("sb-preview").textContent = text || morse;
   document.getElementById("share-banner").hidden = false;
-  // wire the play button to transmit the decoded text
   document.querySelector('[data-action="play-shared"]').addEventListener("click", () => {
     document.getElementById("share-banner").hidden = true;
     State.decoded = ""; State.morseOut = ""; updateReadout();

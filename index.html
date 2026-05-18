@@ -26,7 +26,7 @@
 
 <!-- ============== DEVICE ============== -->
 <main class="stage">
-  <div class="device" id="device">
+  <div class="device">
     <!-- screws -->
     <span class="screw tl"></span><span class="screw tr"></span>
     <span class="screw bl"></span><span class="screw br"></span>
@@ -52,8 +52,8 @@
     <!-- antenna + status -->
     <div class="device-head">
       <div class="status-strip">
-        <span class="led-pill" id="power-led"></span>
-        <span class="status-text" id="status-text">READY</span>
+        <span class="led-pill"></span>
+        <span class="status-text" id="status-text" aria-live="polite">READY</span>
         <span class="signal-bars" aria-hidden="true">
           <i></i><i></i><i></i><i></i><i></i>
         </span>
@@ -78,7 +78,7 @@
     </div>
 
     <!-- TREE PANEL -->
-    <section class="tree-panel" id="tree-panel">
+    <section class="tree-panel">
       <svg id="tree-svg" viewBox="0 0 1000 540" preserveAspectRatio="xMidYMid meet" aria-label="Morse code binary tree"></svg>
       <!-- big letter spotlight -->
       <div class="letter-spot" id="letter-spot" aria-hidden="true">
@@ -123,10 +123,10 @@
     <!-- input pad / mode tabs -->
     <section class="inputbay">
       <nav class="tabs" role="tablist">
-        <button class="tab active" data-tab="key" role="tab">KEY</button>
-        <button class="tab" data-tab="t2m" role="tab">TEXT → MORSE</button>
-        <button class="tab" data-tab="m2t" role="tab">MORSE → TEXT</button>
-        <button class="tab" data-tab="drill" role="tab">DRILL</button>
+        <button class="tab active" data-tab="key" role="tab" aria-selected="true">KEY</button>
+        <button class="tab" data-tab="t2m" role="tab" aria-selected="false">TEXT → MORSE</button>
+        <button class="tab" data-tab="m2t" role="tab" aria-selected="false">MORSE → TEXT</button>
+        <button class="tab" data-tab="drill" role="tab" aria-selected="false">DRILL</button>
       </nav>
 
       <!-- KEY tab -->
@@ -194,11 +194,18 @@
             <button class="seg-btn" data-val="all">+Punct</button>
           </div>
         </div>
+        <div class="drill-mode-row">
+          <span class="dm-label">MODE</span>
+          <div class="seg drill-mode-seg" data-tweak="drillMode" role="tablist" aria-label="Drill mode">
+            <button class="seg-btn" data-val="blind" title="Hide the Morse code — listen and guess">Blind</button>
+            <button class="seg-btn" data-val="visible" title="Show the Morse code — read and guess">Visible</button>
+          </div>
+        </div>
         <div class="drill-prompt">
           <button class="drill-replay" data-action="drill-replay" title="Replay morse">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4V1L7 6l5 5V7a5 5 0 1 1-5 5H5a7 7 0 1 0 7-8Z" fill="currentColor"/></svg>
           </button>
-          <div class="drill-morse" id="drill-morse">– – –</div>
+          <div class="drill-morse hidden" id="drill-morse">— — —</div>
         </div>
         <div class="drill-choices" id="drill-choices" role="group" aria-label="Pick the letter"></div>
         <div class="drill-feedback" id="drill-feedback" aria-live="polite"></div>
@@ -214,22 +221,6 @@
 
     <!-- bottom control rail -->
     <section class="rail">
-      <div class="rail-row">
-        <label class="rail-control wpm-control">
-          <span class="rc-label">WPM <b id="wpm-val">15</b></span>
-          <input type="range" id="wpm" min="5" max="40" step="1" value="15" />
-        </label>
-      </div>
-      <div class="rail-row">
-        <div class="rail-control tone-control">
-          <span class="rc-label">TONE</span>
-          <div class="seg seg-fill" role="tablist">
-            <button class="seg-btn active" data-tone="sine">Sine</button>
-            <button class="seg-btn" data-tone="telegraph">Telegraph</button>
-            <button class="seg-btn" data-tone="buzzer">Buzzer</button>
-          </div>
-        </div>
-      </div>
       <div class="rail-row">
         <button class="sos" data-action="sos" title="Send SOS">
           <span class="sos-glyph">·&nbsp;·&nbsp;·&nbsp;&nbsp;—&nbsp;—&nbsp;—&nbsp;&nbsp;·&nbsp;·&nbsp;·</span>
@@ -275,7 +266,7 @@
       <h3><span class="hs-num">2</span> TEXT → MORSE <span class="hs-sub">— transmit a sentence</span></h3>
       <ul class="tip-list">
         <li><kbd>Type</kbd><span>any message, then hit <b>Transmit</b> to play it through the tree + audio</span></li>
-        <li><kbd>WPM</kbd><span>slider controls playback speed (5 = beginner, 40 = expert)</span></li>
+        <li><kbd>Speed</kbd><span>open <b>Customize</b> to adjust WPM (5 = beginner, 40 = expert)</span></li>
         <li><kbd>Share</kbd><span>copies a shareable link with the Morse encoded in the URL</span></li>
       </ul>
     </section>
@@ -298,6 +289,7 @@
         <li><kbd>Tap</kbd><span>which letter you heard from the 4 choices</span></li>
         <li><kbd>↻</kbd><span>replays the current letter</span></li>
         <li><kbd>Pool</kbd><span>switch between A–Z, +0–9, or +punctuation</span></li>
+        <li><kbd>Mode</kbd><span><b>Blind</b> hides the code (train your ear); <b>Visible</b> shows it (learn by reading) — in Customize</span></li>
       </ul>
       <p class="help-note">Three correct in a row unlocks a streak badge.</p>
     </section>
@@ -407,8 +399,13 @@
     </div>
 
     <div class="tweak">
-      <div class="tweak-label">Default tone</div>
-      <div class="seg seg-grid" data-tweak="default-tone">
+      <div class="tweak-label">Speed <b id="wpm-val">15</b> WPM</div>
+      <input type="range" id="wpm" min="5" max="40" step="1" value="15" />
+    </div>
+
+    <div class="tweak">
+      <div class="tweak-label">Tone</div>
+      <div class="seg seg-grid" data-tweak="tone">
         <button class="seg-btn" data-val="sine">Sine</button>
         <button class="seg-btn" data-val="telegraph">Telegraph</button>
         <button class="seg-btn" data-val="buzzer">Buzzer</button>
@@ -423,7 +420,7 @@
       </div>
     </div>
 
-    <p class="tweak-help footer-help">Settings persist in your browser. Share a message link and your friend's device keeps their own look.</p>
+    <p class="tweak-help footer-help">Settings persist in your browser.</p>
   </div>
 </aside>
 
