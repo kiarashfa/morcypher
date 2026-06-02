@@ -26,49 +26,56 @@ const PUNCT   = [".",",","?","!","/"];
  *  4 — compact "horizontal-spine" layout, letters only
  */
 
-// Model 4 hardcoded positions. ViewBox 1000 wide, antenna at x=500.
-// dot chain extends LEFT, dash chain extends RIGHT (dot=left convention).
+// Model 4 — compact mirrored layout on a column/row grid.
+// ViewBox 1000 wide, antenna at x=500. dot spine extends LEFT, dash spine
+// extends RIGHT (dot=left convention). Branches are drawn as right-angle
+// (L-shaped) connectors. Fitted so the bottom row lands at the same height
+// as the letters-only model, for seamless switching.
+const M4_COL = 86;   // horizontal spacing per column step
+const M4_ROW = 52;   // vertical spacing per row step
+const M4_X   = 500;  // antenna x
+const M4_TOP = 70;   // antenna y (matches defaultBinaryTreePos TOP_Y for seamless height)
+const m4 = (col, row) => ({ x: M4_X + col * M4_COL, y: M4_TOP + row * M4_ROW });
 const MODEL4_POSITIONS = {
-  "":     { x: 500, y: 80 },  // antenna / root
+  "":     m4(0, 0),   // antenna / root
 
-  // top spine — DOT side (left of antenna), getting deeper to the LEFT
-  ".":    { x: 410, y: 80 },  // E
-  "..":   { x: 320, y: 80 },  // I
-  "...":  { x: 230, y: 80 },  // S
-  "....": { x: 140, y: 80 },  // H
-  // top spine — DASH side (right of antenna), getting deeper to the RIGHT
-  "-":    { x: 590, y: 80 },  // T
-  "--":   { x: 680, y: 80 },  // M
-  "---":  { x: 770, y: 80 },  // O
+  // top spine — DOT side (left), dash side (right)
+  ".":    m4(-1, 0),  // E
+  "..":   m4(-2, 0),  // I
+  "...":  m4(-3, 0),  // S
+  "....": m4(-4, 0),  // H
+  "-":    m4(1, 0),   // T
+  "--":   m4(2, 0),   // M
+  "---":  m4(3, 0),   // O
 
   // E sub-tree
-  ".-":     { x: 410, y: 200 },          // A
-  ".-.":    { x: 365, y: 300 },          // R
-  ".--":    { x: 455, y: 300 },          // W
-  ".-..":   { x: 340, y: 400 },          // L
-  ".--.":   { x: 432, y: 400 },          // P
-  ".---":   { x: 478, y: 400 },          // J
+  ".-":     m4(-1, 3),  // A
+  ".-.":    m4(-2, 3),  // R
+  ".-..":   m4(-3, 3),  // L
+  ".--":    m4(-1, 5),  // W
+  ".--.":   m4(-2, 5),  // P
+  ".---":   m4(-1, 6),  // J
 
   // I sub-tree
-  "..-":    { x: 320, y: 200 },          // U
-  "..-.":   { x: 295, y: 300 },          // F
+  "..-":    m4(-2, 1),  // U
+  "..-.":   m4(-2, 2),  // F
 
   // S sub-tree
-  "...-":   { x: 230, y: 200 },          // V
+  "...-":   m4(-3, 1),  // V
 
   // T sub-tree
-  "-.":     { x: 590, y: 200 },          // N
-  "-..":    { x: 545, y: 300 },          // D
-  "-.-":    { x: 635, y: 300 },          // K
-  "-...":   { x: 522, y: 400 },          // B
-  "-..-":   { x: 568, y: 400 },          // X
-  "-.-.":   { x: 612, y: 400 },          // C
-  "-.--":   { x: 658, y: 400 },          // Y
+  "-.":     m4(1, 3),   // N
+  "-.-":    m4(2, 3),   // K
+  "-.--":   m4(3, 3),   // Y
+  "-.-.":   m4(2, 4),   // C
+  "-..":    m4(1, 5),   // D
+  "-..-":   m4(2, 5),   // X
+  "-...":   m4(1, 6),   // B
 
   // M sub-tree
-  "--.":    { x: 680, y: 200 },          // G
-  "--..":   { x: 655, y: 300 },          // Z
-  "--.-":   { x: 705, y: 300 },          // Q
+  "--.":    m4(2, 1),   // G
+  "--..":   m4(2, 2),   // Z
+  "--.-":   m4(3, 1),   // Q
 };
 
 const MODELS = {
@@ -257,11 +264,19 @@ function renderTree() {
   svg.appendChild(gExtras);
 
   // branches
+  const isModel4 = modelId === "4";
   TREE.branches.forEach(b => {
     const a = TREE.nodes[b.from], c = TREE.nodes[b.to];
+    let d;
+    if (isModel4 && Math.abs(a.x - c.x) > 0.5 && Math.abs(a.y - c.y) > 0.5) {
+      // right-angle (L-shaped) connector: drop vertically from parent, then
+      // run horizontally to the child — matches the compact PCB-style layout.
+      d = `M${a.x},${a.y} L${a.x},${c.y} L${c.x},${c.y}`;
+    } else {
+      d = `M${a.x},${a.y} L${c.x},${c.y}`;
+    }
     const ln = svgEl("path", {
-      class: "branch", "data-to": b.to,
-      d: `M${a.x},${a.y} L${c.x},${c.y}`,
+      class: "branch", "data-to": b.to, d,
     });
     gBranches.appendChild(ln);
   });
@@ -291,7 +306,7 @@ function renderTree() {
       if (len === 5) return apply({ r: 15, s: 28, rx: 4 });     // numbers
       return        apply({ r: 11, s: 22, rx: 3 });             // punctuation
     }
-    if (modelId === "4") return apply({ r: 26, s: 46, rx: 4 });
+    if (modelId === "4") return apply({ r: 21, s: 38, rx: 5 });
     return apply({ r: 21, s: 38, rx: 5 });
   }
 
@@ -1081,6 +1096,7 @@ function toggleDrawer(id) {
 document.querySelectorAll('[data-action="toggle-ref"]').forEach(b => b.addEventListener("click", () => toggleDrawer("ref-drawer")));
 document.querySelectorAll('[data-action="toggle-help"]').forEach(b => b.addEventListener("click", () => toggleDrawer("help-drawer")));
 document.querySelectorAll('[data-action="toggle-tweaks"]').forEach(b => b.addEventListener("click", () => toggleDrawer("tweaks-drawer")));
+document.querySelectorAll('[data-action="toggle-about"]').forEach(b => b.addEventListener("click", () => toggleDrawer("about-drawer")));
 scrim.addEventListener("click", () => {
   document.querySelectorAll(".drawer").forEach(d => d.hidden = true);
   scrim.hidden = true;
@@ -1169,7 +1185,8 @@ const Prefs = (() => {
     document.querySelectorAll('.swatches[data-tweak="glow"] .sw').forEach(b => b.classList.toggle("active", b.dataset.val === p.glow));
   }
   function set(k, v) { p[k] = v; save(); apply(); }
-  return { get: () => p, set, apply };
+  function reset() { p = { ...defaults }; save(); apply(); }
+  return { get: () => p, set, reset, apply };
 })();
 
 document.querySelectorAll('[data-tweak]').forEach(group => {
@@ -1190,6 +1207,10 @@ document.getElementById("wpm").addEventListener("input", e => {
 });
 document.querySelector('[data-action="toggle-theme"]').addEventListener("click", () => {
   Prefs.set("theme", Prefs.get().theme === "dark" ? "light" : "dark");
+});
+document.querySelector('[data-action="reset-defaults"]').addEventListener("click", () => {
+  Prefs.reset();
+  toast("Settings reset to defaults");
 });
 document.getElementById("audiotoggle").addEventListener("click", e => {
   const btn = e.currentTarget;

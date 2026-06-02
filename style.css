@@ -3,6 +3,42 @@
    ========================================================= */
 
 /* =========================================================
+   SELF-HOSTED FONTS
+   ---------------------------------------------------------
+   Files live in /fonts (woff2 only). font-display:swap shows a
+   system fallback until each weight loads. Family names match
+   the --f-mono / --f-sans / --f-serif variables below.
+   ========================================================= */
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("fonts/jetbrains-mono-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 500;
+  font-display: swap; src: url("fonts/jetbrains-mono-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 700;
+  font-display: swap; src: url("fonts/jetbrains-mono-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("fonts/space-grotesk-400.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk"; font-style: normal; font-weight: 500;
+  font-display: swap; src: url("fonts/space-grotesk-500.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk"; font-style: normal; font-weight: 700;
+  font-display: swap; src: url("fonts/space-grotesk-700.woff2") format("woff2");
+}
+@font-face {
+  font-family: "DM Serif Display"; font-style: normal; font-weight: 400;
+  font-display: swap; src: url("fonts/dm-serif-display-400.woff2") format("woff2");
+}
+
+/* =========================================================
    THEMES
    ---------------------------------------------------------
    :root holds the DARK palette. body[data-theme="light"]
@@ -1302,6 +1338,31 @@ input[type=range]::-moz-range-thumb {
   color: var(--ink-faint); letter-spacing: .04em;
 }
 .tweak-help.footer-help { margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--panel-edge); }
+
+/* reset-to-defaults button */
+.resetbtn {
+  width: 100%;
+  background: var(--panel-2); color: var(--ink-dim);
+  border: 1px solid var(--panel-edge); border-radius: 10px;
+  padding: 10px 12px;
+  font: 700 10px/1 var(--f-mono); letter-spacing: .16em;
+  transition: background .15s, border-color .15s, color .15s, transform .08s;
+}
+.resetbtn:hover {
+  color: var(--glow);
+  border-color: color-mix(in oklab, var(--glow) 55%, var(--panel-edge));
+  background: var(--panel);
+}
+.resetbtn:active { transform: translateY(1px); }
+
+/* about-drawer link */
+.about-link {
+  color: var(--glow); text-decoration: none;
+  border-bottom: 1px solid color-mix(in oklab, var(--glow) 45%, transparent);
+  transition: border-color .15s;
+}
+.about-link:hover { border-bottom-color: var(--glow); }
+
 .swatches { display: flex; gap: 8px; }
 .swatches .sw {
   width: 36px; height: 36px; border-radius: 50%;

@@ -6,9 +6,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="description" content="A virtual Morse code device — tap, type, or click to send Morse. Share-able links, audio, and a live tree decoder." />
 <meta name="theme-color" content="#0d1014" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+<link rel="icon" href="favicon/favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
+<link rel="manifest" href="favicon/site.webmanifest" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body data-theme="dark" data-finish="matte" data-font="mono" data-glow="amber">
@@ -39,10 +41,13 @@
       <button class="iconbtn-square" data-action="toggle-ref" title="Morse reference" aria-label="Reference">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5v-13Zm9 -1.5h5.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H13V4Z" fill="currentColor"/></svg>
       </button>
+      <button class="iconbtn-square" data-action="toggle-about" title="About this project" aria-label="About">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8Zm-1-12h2v2h-2V8Zm0 4h2v6h-2v-6Z" fill="currentColor"/></svg>
+      </button>
     </nav>
     <nav class="device-actions right" aria-label="Customize and theme">
       <button class="iconbtn-square" data-action="toggle-tweaks" title="Customize" aria-label="Customize">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm9.4 4-1.9-.6-.3-.9 1-1.7-1.9-1.9-1.7 1-.9-.3-.6-1.9h-2.6l-.6 1.9-.9 .3-1.7-1-1.9 1.9 1 1.7-.3 .9-1.9 .6v2.6l1.9 .6 .3 .9-1 1.7 1.9 1.9 1.7-1 .9 .3 .6 1.9h2.6l.6-1.9 .9-.3 1.7 1 1.9-1.9-1-1.7 .3-.9 1.9-.6V12Z" fill="currentColor"/></svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="15" cy="7" r="2.4" fill="currentColor"/><circle cx="9" cy="17" r="2.4" fill="currentColor"/></svg>
       </button>
       <button class="iconbtn-square" data-action="toggle-theme" title="Toggle light/dark" aria-label="Toggle theme">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5Z" fill="currentColor"/></svg>
@@ -331,6 +336,43 @@
   </div>
 </aside>
 
+<!-- ============== ABOUT DRAWER ============== -->
+<aside class="drawer" id="about-drawer" hidden aria-label="About this project">
+  <header class="drawer-head">
+    <h2>About</h2>
+    <button class="iconbtn-square ghost" data-action="toggle-about" aria-label="Close">✕</button>
+  </header>
+  <div class="drawer-body">
+    <p class="help-lead">
+      I always wanted the most complete Morse code device — something with a real
+      visual and educational feel — for myself. Now that I'm vibe-coding little
+      pages for the things I love, I finally built it.
+    </p>
+
+    <section class="help-section">
+      <h3><span class="hs-num">✦</span> What this is</h3>
+      <ul class="tip-list">
+        <li><kbd>Tree</kbd><span>a live <b>binary tree</b> decoder — every dot goes left, every dash goes right, lighting the path to each letter</span></li>
+        <li><kbd>Key</kbd><span>tap, hold, click, or type to send Morse with real-time audio</span></li>
+        <li><kbd>Tools</kbd><span>two-way <b>text ↔ Morse</b> conversion, a practice <b>drill</b>, and shareable message links</span></li>
+        <li><kbd>Style</kbd><span>themes, finishes, glow colors, fonts, and speed — make it yours</span></li>
+      </ul>
+      <p class="help-note">Built entirely client-side. No servers, no tracking — just a beep and a message.</p>
+    </section>
+
+    <section class="help-section">
+      <h3><span class="hs-num">☻</span> The developer</h3>
+      <p class="help-lead" style="margin:0">
+        Made by Kiarash — a hobby project born from loving the craft of old
+        communication tech and the fun of building small, polished things.
+      </p>
+      <ul class="tip-list">
+        <li><kbd>↗</kbd><span>More projects on <a class="about-link" href="https://github.com/kiarashfa" target="_blank" rel="noopener">github.com/kiarashfa</a></span></li>
+      </ul>
+    </section>
+  </div>
+</aside>
+
 <!-- ============== TWEAKS DRAWER ============== -->
 <aside class="drawer right" id="tweaks-drawer" hidden aria-label="Customize">
   <header class="drawer-head">
@@ -418,6 +460,10 @@
         <button class="seg-btn" data-val="dark">Dark</button>
         <button class="seg-btn" data-val="light">Light</button>
       </div>
+    </div>
+
+    <div class="tweak">
+      <button class="resetbtn" data-action="reset-defaults">↺ Reset to defaults</button>
     </div>
 
     <p class="tweak-help footer-help">Settings persist in your browser.</p>

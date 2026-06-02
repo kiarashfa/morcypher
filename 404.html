@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>404 — Morse Code Device</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex" />
+<meta name="theme-color" content="#0d1014" />
+<meta name="description" content="404 — no message found at this address." />
+<style>
+  :root{
+    --glow:#ffbe5c;
+    --bg-0:#0a0c10; --bg-1:#0f1218;
+    --panel:#0d0f13; --panel-2:#15181f; --panel-edge:#1f242d;
+    --inkline:#3a455c; --led-off:#1c2330; --led-off-edge:#2c3650;
+    --ink:#e7ecf3; --ink-dim:#98a3b5; --ink-faint:#5b6677;
+    --dead:#ff7a6e;
+    --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; min-height:100%; }
+  body{
+    font-family:var(--f-mono); color:var(--ink);
+    background:
+      radial-gradient(220px 140px at 50% 12%,color-mix(in oklab,var(--glow) 12%,transparent),transparent 70%),
+      linear-gradient(180deg,var(--bg-0),var(--bg-1));
+    min-height:100vh; min-height:100dvh;
+    display:flex; align-items:center; justify-content:center;
+    padding:48px 24px; overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .panel{
+    position:relative; text-align:center;
+    width:min(100%,460px);
+    padding:56px 28px 44px;
+  }
+
+  .status-strip{
+    display:inline-flex; align-items:center; gap:10px; padding:6px 14px;
+    background:var(--panel); border:1px solid var(--panel-edge); border-radius:999px;
+    font:600 10px/1 var(--f-mono); letter-spacing:.22em; color:var(--ink-dim);
+    position:absolute; top:0; left:50%; transform:translateX(-50%);
+  }
+  .led-pill{
+    width:9px; height:9px; border-radius:50%; background:var(--dead);
+    box-shadow:0 0 8px var(--dead); animation:pulse 1.6s ease-in-out infinite;
+  }
+
+  svg{ display:block; margin:0 auto 24px; overflow:visible; width:250px; height:auto; }
+  .br{ stroke:var(--inkline); stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; fill:none; opacity:.8; }
+  .br.lit{ stroke:var(--glow); stroke-width:3; filter:drop-shadow(0 0 5px var(--glow)); }
+  .br.dead{ stroke:var(--dead); opacity:.4; stroke-dasharray:4 5; }
+  .led{ fill:var(--led-off); stroke:var(--led-off-edge); stroke-width:1.5; }
+  .led.on{ fill:var(--glow); stroke:color-mix(in oklab,var(--glow) 60%,white 30%);
+    filter:drop-shadow(0 0 7px var(--glow)); }
+  .led.dead{ fill:#1a0e0c; stroke:#5a2a26; stroke-dasharray:3 4; }
+  .glyph{ font:700 15px/1 var(--f-mono); text-anchor:middle; dominant-baseline:central; fill:#14110a; }
+  .glyph.dead{ fill:var(--dead); font-weight:400; font-size:20px; }
+
+  h1{ font:700 64px/1 var(--f-mono); letter-spacing:.1em; margin:0; color:var(--glow);
+    text-shadow:0 0 30px color-mix(in oklab,var(--glow) 55%,transparent); }
+  .sub{ font:500 11px/1.6 var(--f-mono); letter-spacing:.24em; color:var(--ink-faint);
+    text-transform:uppercase; margin:8px 0 24px; }
+  .home{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--glow); color:#1a1305; border:0; padding:11px 22px; border-radius:999px;
+    font:700 11px/1 var(--f-mono); letter-spacing:.18em; text-decoration:none;
+    box-shadow:0 8px 20px -8px var(--glow);
+    transition:filter .15s, transform .08s;
+  }
+  .home:hover{ filter:brightness(1.08); }
+  .home:active{ transform:translateY(1px); }
+
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  @media (max-width:420px){
+    .panel{ padding-top:48px; }
+    h1{ font-size:54px; }
+    svg{ width:220px; }
+  }
+</style>
+</head>
+<body>
+
+  <main class="panel">
+    <div class="status-strip"><span class="led-pill"></span> NO SIGNAL · 404</div>
+
+    <svg viewBox="0 0 210 130" role="img" aria-label="A Morse decoder tree whose path dead-ends">
+      <!-- L-shaped (right-angle) connectors, PCB style -->
+      <path class="br lit"  d="M105 16 L105 40 L66 40 L66 62"/>
+      <path class="br lit"  d="M66 62 L66 86 L40 86 L40 106"/>
+      <path class="br dead" d="M105 16 L105 40 L150 40 L150 62"/>
+      <path class="br dead" d="M150 62 L150 86 L176 86 L176 106"/>
+
+      <!-- root (dot) -->
+      <circle class="led on" cx="105" cy="16" r="12"/><text class="glyph" x="105" y="16">·</text>
+      <!-- lit path -->
+      <circle class="led on" cx="66" cy="62" r="12"/><text class="glyph" x="66" y="62">E</text>
+      <circle class="led on" cx="40" cy="106" r="12"/><text class="glyph" x="40" y="106">I</text>
+      <!-- dead path -->
+      <rect class="led dead" x="138" y="50" width="24" height="24" rx="5"/><text class="glyph dead" x="150" y="63">T</text>
+      <rect class="led dead" x="164" y="94" width="24" height="24" rx="5"/><text class="glyph dead" x="176" y="107">?</text>
+    </svg>
+
+    <h1>404</h1>
+    <div class="sub">message not found on this frequency</div>
+    <a class="home" href="/morcypher/">⌁ RETURN TO KEY</a>
+  </main>
+
+</body>
+</html>
