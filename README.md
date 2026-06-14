@@ -9,4 +9,4 @@ Tap, hold, type, or click to compose a message, then play it back as authentic C
 
 © 2026 Kiarash Farajzadehahary
 
-Made with ❤️ and — — ● ● ●   ● ● ● — —
+Made with ❤️ and `— — ● ● ●   ● ● ● — —`
