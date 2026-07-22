@@ -1363,6 +1363,27 @@ input[type=range]::-moz-range-thumb {
 }
 .about-link:hover { border-bottom-color: var(--glow); }
 
+/* support buttons — key-cap styled links (about drawer) */
+.support-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.support-btn {
+  flex: 1 1 130px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: 700 12px/1 var(--f-mono); letter-spacing: .03em;
+  color: var(--ink-dim); text-decoration: none;
+  background: var(--panel-2);
+  border: 1px solid var(--panel-edge);
+  border-bottom-width: 2px;
+  border-radius: 8px;
+  padding: 10px 12px;
+  transition: color .15s, border-color .15s, transform .12s;
+}
+.support-btn:hover {
+  color: var(--glow);
+  border-color: color-mix(in oklab, var(--glow) 45%, var(--panel-edge));
+  transform: translateY(-1px);
+}
+.support-btn svg { width: 15px; height: 15px; fill: currentColor; flex-shrink: 0; }
+
 .swatches { display: flex; gap: 8px; }
 .swatches .sw {
   width: 36px; height: 36px; border-radius: 50%;
