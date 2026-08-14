@@ -7,6 +7,8 @@ Tap, hold, type, or click to compose a message, then play it back as authentic C
 ---
 
 
-© 2026 Kiarash Farajzadehahary
+© 2026 Kiarash Farajzadehahary.
+
+⚖ Licensed under the [KFA Source-Available License 1.0](LICENSE).
 
 Made with ❤️ and `— — ● ● ●   ● ● ● — —`
