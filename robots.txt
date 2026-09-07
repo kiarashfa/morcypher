@@ -1,0 +1,11 @@
+# https://kiarashfa.github.io/morcypher/
+#
+# Note: GitHub Pages *project* sites only have their robots.txt honoured at the
+# origin root (kiarashfa.github.io/robots.txt), which lives in the
+# kiarashfa.github.io repo. This file is inert until a custom domain is added,
+# but is correct if one ever is. Submit the sitemap via Google Search Console.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://kiarashfa.github.io/morcypher/sitemap.xml

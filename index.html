@@ -2,16 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Morse Code Device</title>
+<title>MorCypher — Morse Code Device</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="description" content="A virtual Morse code device — tap, type, or click to send Morse. Share-able links, audio, and a live tree decoder." />
-<meta name="theme-color" content="#0d1014" />
+
+<!-- theme-color is kept in sync with the resolved theme by the pre-paint script
+     below and by Prefs.apply() in script.js. Colors are the --bg-0 tokens. -->
+<meta name="theme-color" content="#0a0c10" />
+<script>
+  /* Pre-paint theme init: applies the saved theme before first paint so a
+     light-mode visitor never sees a flash of the dark palette. Mirrors the
+     defaults in Prefs (script.js). */
+  (function () {
+    var theme = "dark";
+    try {
+      var saved = JSON.parse(localStorage.getItem("morse.prefs.v1") || "{}");
+      if (saved.theme === "light" || saved.theme === "dark") theme = saved.theme;
+    } catch (e) {}
+    document.documentElement.dataset.theme = theme;
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "light" ? "#ebe6da" : "#0a0c10");
+  })();
+</script>
+
+<link rel="canonical" href="https://kiarashfa.github.io/morcypher/" />
+
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://kiarashfa.github.io/morcypher/" />
+<meta property="og:site_name" content="MorCypher" />
+<meta property="og:title" content="MorCypher — Morse Code Device" />
+<meta property="og:description" content="A virtual Morse code device — tap, type, or click to send Morse. Share-able links, audio, and a live tree decoder." />
+<meta property="og:image" content="https://kiarashfa.github.io/morcypher/src/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="MorCypher — a virtual Morse code device." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="MorCypher — Morse Code Device" />
+<meta name="twitter:description" content="A virtual Morse code device — tap, type, or click to send Morse. Share-able links, audio, and a live tree decoder." />
+<meta name="twitter:image" content="https://kiarashfa.github.io/morcypher/src/og-image.png" />
+
 <link rel="icon" href="favicon/favicon.ico" sizes="any" />
 <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png" />
 <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
 <link rel="manifest" href="favicon/site.webmanifest" />
 <link rel="stylesheet" href="style.css" />
+<script async src="/morcypher/analytics.js"></script>
 </head>
 <body data-theme="dark" data-finish="matte" data-font="mono" data-glow="amber">
 
@@ -244,6 +281,10 @@
   </div>
 </main>
 
+<footer class="site-footer">
+  <span id="copyright">© 2026 Kiarash Farajzadehahary</span>
+</footer>
+
 <!-- ============== HELP DRAWER ============== -->
 <aside class="drawer" id="help-drawer" hidden aria-label="Help &amp; guide">
   <header class="drawer-head">
@@ -357,7 +398,7 @@
         <li><kbd>Tools</kbd><span>two-way <b>text ↔ Morse</b> conversion, a practice <b>drill</b>, and shareable message links</span></li>
         <li><kbd>Style</kbd><span>themes, finishes, glow colors, fonts, and speed — make it yours</span></li>
       </ul>
-      <p class="help-note">Built entirely client-side. No servers, no tracking — just a beep and a message.</p>
+      <p class="help-note">Built entirely client-side. No accounts, no message ever leaves your browser… just a beep and a message.</p>
     </section>
 
     <section class="help-section">
@@ -376,7 +417,7 @@
     <section class="help-section">
       <h3><span class="hs-num">♥</span> Support the project</h3>
       <p class="help-lead" style="margin:0">
-        MorCypher is free and open-source — no ads, no servers, no telegraph
+        MorCypher is free and open-source — no ads, no account, no telegraph
         fees. If it earned a spot on your desk, you can help keep the little
         machines coming.
       </p>

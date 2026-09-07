@@ -1154,8 +1154,14 @@ const Prefs = (() => {
   let p = { ...defaults };
   try { p = { ...defaults, ...(JSON.parse(localStorage.getItem(KEY) || "{}")) }; } catch(_) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(p)); } catch(_){} }
+  const THEME_COLORS = { dark: "#0a0c10", light: "#ebe6da" };
   function apply() {
     document.body.dataset.theme = p.theme;
+    // <html> carries the theme too: the pre-paint script in the head sets it
+    // there before body exists, so the two must never drift apart.
+    document.documentElement.dataset.theme = p.theme;
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeMeta) themeMeta.setAttribute("content", THEME_COLORS[p.theme] || THEME_COLORS.dark);
     document.body.dataset.finish = p.finish;
     document.body.dataset.font = p.font;
     document.body.dataset.glow = p.glow;
@@ -1258,3 +1264,16 @@ function boot() {
   });
 }
 boot();
+
+/* ---------- COPYRIGHT ---------- */
+/* First-commit year, pinned. Never derive this from git at build time: CI
+   checkouts are shallow, so `git log --reverse` there returns the newest
+   commit and silently yields the wrong year. */
+const COPYRIGHT_START_YEAR = 2026;
+(() => {
+  const el = document.getElementById("copyright");
+  if (!el) return;
+  const now = new Date().getFullYear();
+  const years = now > COPYRIGHT_START_YEAR ? `${COPYRIGHT_START_YEAR}–${now}` : `${COPYRIGHT_START_YEAR}`;
+  el.textContent = `© ${years} Kiarash Farajzadehahary`;
+})();

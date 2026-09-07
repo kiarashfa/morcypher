@@ -1,4 +1,4 @@
-# Morse Code Device
+# MorCypher — Morse Code Device
 
 **Morcypher** (from *Morse* + *cypher*) is a virtual telegraph key for sending, decoding, and learning Morse code.
 

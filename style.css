@@ -84,6 +84,7 @@
 }
 
 /* LIGHT palette */
+:root[data-theme="light"],
 body[data-theme="light"] {
   --bg-0: #ebe6da;
   --bg-1: #ddd6c5;
@@ -1412,4 +1413,16 @@ input[type=range]::-moz-range-thumb {
 /* wider — keep device phone-shape but float drawer-toggle hints */
 @media (min-width: 720px) {
   .stage { padding: 24px 16px 80px; }
+}
+
+/* =========================================================
+   SITE FOOTER
+   ========================================================= */
+.site-footer{
+  text-align:center;
+  padding:0 24px 28px;
+  font-family:var(--f-mono);
+  font-size:11px;
+  letter-spacing:.06em;
+  color:var(--ink-faint);
 }
