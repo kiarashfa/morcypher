@@ -8,4 +8,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://kiarashfa.github.io/morcypher/sitemap.xml
+Sitemap: https://kiarashfa.github.io/morcypher/sitemap-index.xml
